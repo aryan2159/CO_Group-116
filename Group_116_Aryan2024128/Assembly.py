@@ -82,6 +82,25 @@ def parse_assembly(lines):
 
     return instructions, labels, variables
 
+def validate_immediate(value, bit_length):
+    if not (-2**(bit_length-1) <= int(value) < 2**(bit_length-1)):
+        print(f"Error: Immediate value {value} out of range for {bit_length}-bit encoding.")
+        exit(1)
+
+def calculate_branch_offset(label_or_imm, labels, current_address):
+    try:
+        if label_or_imm in labels:
+            offset = labels[label_or_imm] - current_address
+        else:
+            offset = int(label_or_imm)
+    except ValueError:
+        print(f"Error: Invalid branch target {label_or_imm}")
+        exit(1)
+    validate_immediate(offset, 12)
+    return format(offset & 0xFFF, '012b')
+
+def r_type(instruction, opcode, funct3, funct7):
+    return funct7 + register_map[instruction[3]] + register_map[instruction[2]] + funct3 + register_map[instruction[1]] + opcode
 
 def i_type(instruction, opcode, funct3):
     try:
