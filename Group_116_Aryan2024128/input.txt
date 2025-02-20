@@ -1,0 +1,18 @@
+addi t0,zero,1
+addi s0,s0,1
+beq s0,s1,label1
+label4e:beq zero,zero,label4b
+label1: bne s0,s1,8
+addi t0,zero,3
+addi s1,s1,1
+bne s0,s1,label4e
+addi s1,s1,1
+addi t0,zero,4
+label2: addi s0,s0,1
+label4b: bne s0,s1,8
+addi t0,zero,5
+addi s1,s1,1
+addi s1,s1,1
+addi t0,zero,6
+addi t0,zero,7
+beq zero,zero,0
