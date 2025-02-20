@@ -1,3 +1,88 @@
+
+register_map = {
+    "zero": "00000", "ra": "00001", "sp": "00010", "gp": "00011",
+    "tp": "00100", "t0": "00101", "t1": "00110", "t2": "00111",
+    "s0": "01000", "s1": "01001", "a0": "01010", "a1": "01011",
+    "a2": "01100", "a3": "01101", "a4": "01110", "a5": "01111",
+    "a6": "10000", "a7": "10001", "s2": "10010", "s3": "10011",
+    "s4": "10100", "s5": "10101", "s6": "10110", "s7": "10111",
+    "s8": "11000", "s9": "11001", "s10": "11010", "s11": "11011",
+    "t3": "11100", "t4": "11101", "t5": "11110", "t6": "11111"
+}
+
+def parse_assembly(lines):
+    labels = {}
+    variables = {}
+    instructions = []
+    var_address = 256
+
+  
+    memory_address = 0
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or line.startswith("var"):
+            continue
+
+        label = None
+        if ':' in line:
+            possible_label, sep, rest = line.partition(':')
+            possible_label = possible_label.strip()
+            rest = rest.strip()
+            if possible_label and ' ' not in possible_label:
+                label = possible_label
+                line = rest
+
+        tokens = []
+        for token in line.split():
+            split_tokens = token.replace(',', ' ').replace('(', ' ').replace(')', ' ').split()
+            tokens.extend(split_tokens)
+
+        if label is not None:
+            labels[label] = memory_address
+
+        if tokens:
+            memory_address += 1
+
+    
+    memory_address = 0
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+
+        if line.startswith("var"):
+            parts = line.split()
+            variables[parts[1]] = var_address
+            var_address += 1
+            continue
+
+        label = None
+        if ':' in line:
+            possible_label, sep, rest = line.partition(':')
+            possible_label = possible_label.strip()
+            rest = rest.strip()
+            if possible_label and ' ' not in possible_label:
+                label = possible_label
+                line = rest
+
+        tokens = []
+        for token in line.split():
+            split_tokens = token.replace(',', ' ').replace('(', ' ').replace(')', ' ').split()
+            tokens.extend(split_tokens)
+
+        if tokens:
+            if tokens[0] in ["lw", "sw"] and len(tokens) >= 3:
+                parts = tokens[-1].split('(')
+                if len(parts) == 2:
+                    offset = parts[0]
+                    base_reg = parts[1].strip(')')
+                    tokens = tokens[:-1] + [offset, base_reg]
+            instructions.append(tokens)
+            memory_address += 1
+
+    return instructions, labels, variables
+
+
 def i_type(instruction, opcode, funct3):
     try:
         imm = format(int(instruction[3]), '012b')
